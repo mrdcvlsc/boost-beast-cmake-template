@@ -12,6 +12,7 @@
 #include <boost/asio/ssl/verify_mode.hpp>
 
 #include <cstdlib>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 
@@ -42,10 +43,11 @@ void load_root_certificates(ssl::context &ctx) {
   ctx.set_verify_mode(ssl::verify_peer | ssl::verify_fail_if_no_peer_cert);
 
   // Check if the CA file exists.
-  std::ifstream file("./cacert.pem");
-  if (file.good()) {
+  auto path_certificate = std::filesystem::path(".", "cacert.pem");
+  std::ifstream file_certificate(path_certificate.string());
+  if (file_certificate.good()) {
     std::cout << "Loading CA certificates from cacert.pem\n";
-    ctx.load_verify_file("./cacert.pem");
+    ctx.load_verify_file(path_certificate.string());
   } else {
     std::cout << "cacert.pem not found. Using system default verification paths.\n";
     ctx.set_default_verify_paths();

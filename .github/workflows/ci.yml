@@ -24,9 +24,9 @@ jobs:
         platform:
         - { name: Windows VS2019, os: windows-2019,  curl: .\\build\\bin\\Release\\curl.exe -V, bin: .\\build\\bin\\Release\\main.exe }
         - { name: Windows VS2022, os: windows-2022,  curl: .\\build\\bin\\Release\\curl.exe -V, bin: .\\build\\bin\\Release\\main.exe }
-        - { name: Linux GCC,      os: ubuntu-latest, curl: .\\build\\bin\\Release\\curl -V,     bin: ./build/bin/main }
-        - { name: Linux Clang,    os: ubuntu-latest, curl: .\\build\\bin\\Release\\curl -V,     bin: ./build/bin/main, flags: -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ }
-        - { name: macOS,          os: macos-latest,  curl: .\\build\\bin\\Release\\curl -V,     bin: ./build/bin/main }
+        - { name: Linux GCC,      os: ubuntu-latest, curl: ./build/bin/curl -V,                 bin: ./build/bin/main }
+        - { name: Linux Clang,    os: ubuntu-latest, curl: ./build/bin/curl -V,                 bin: ./build/bin/main, flags: -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ }
+        - { name: macOS,          os: macos-latest,  curl: ./build/bin/curl -V,                 bin: ./build/bin/main }
         config:
         - { name: Shared, flags: -DBUILD_SHARED_LIBS=TRUE }
         - { name: Static, flags: -DBUILD_SHARED_LIBS=FALSE }

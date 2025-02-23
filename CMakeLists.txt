@@ -7,8 +7,12 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# ================ find open ssl ==================
+
 set(OPENSSL_USE_STATIC_LIBS ON)
 find_package(OpenSSL REQUIRED)
+
+# ================ download boost =================
 
 include(FetchContent)
 
@@ -28,9 +32,19 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(Boost)
 
-add_executable(${PROJECT_NAME}
-    src/main.cpp
+# ================== sync target ==================
+
+add_executable("${PROJECT_NAME}-sync"
+    src/client-sync.cpp
 )
+
+# ================== async target =================
+
+add_executable("${PROJECT_NAME}-async"
+    src/client-async.cpp
+)
+
+# ========= force msvc to use static lib ==========
 
 if(MSVC)
     foreach(flag_var
@@ -46,15 +60,33 @@ if(MSVC)
     endforeach()
 endif()
 
-target_link_libraries(${PROJECT_NAME} PRIVATE OpenSSL::SSL OpenSSL::Crypto Boost::system Boost::beast)
+# ================== sync example =================
 
-target_include_directories(${PROJECT_NAME} PRIVATE 
+target_link_libraries("${PROJECT_NAME}-sync" PRIVATE OpenSSL::SSL OpenSSL::Crypto Boost::system Boost::beast)
+
+target_include_directories("${PROJECT_NAME}-sync" PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
 # windows-specific configurations
 if(WIN32)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
+    target_compile_definitions("${PROJECT_NAME}-sync" PRIVATE
+        _WIN32_WINNT=0x0601  # target Windows 7 or later
+        WIN32_LEAN_AND_MEAN  # exclude rarely used windows headers
+    )
+endif()
+
+# ================== async example =================
+
+target_link_libraries("${PROJECT_NAME}-async" PRIVATE OpenSSL::SSL OpenSSL::Crypto Boost::system Boost::beast)
+
+target_include_directories("${PROJECT_NAME}-async" PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+# windows-specific configurations
+if(WIN32)
+    target_compile_definitions("${PROJECT_NAME}-async" PRIVATE
         _WIN32_WINNT=0x0601  # target Windows 7 or later
         WIN32_LEAN_AND_MEAN  # exclude rarely used windows headers
     )

@@ -22,11 +22,11 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-        - { name: Windows VS2019, os: windows-2019,  bin: .\\build\\bin\\Release\\main.exe }
-        - { name: Windows VS2022, os: windows-2022,  bin: .\\build\\bin\\Release\\main.exe }
-        - { name: Linux GCC,      os: ubuntu-latest, bin: ./build/bin/main }
-        - { name: Linux Clang,    os: ubuntu-latest, bin: ./build/bin/main, flags: -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ }
-        - { name: macOS,          os: macos-latest,  bin: ./build/bin/main }
+        - { name: Windows VS2019, os: windows-2019,  bin_sync: .\\build\\bin\\Release\\main-sync.exe, bin_async: .\\build\\bin\\Release\\main-async.exe }
+        - { name: Windows VS2022, os: windows-2022,  bin_sync: .\\build\\bin\\Release\\main-sync.exe, bin_async: .\\build\\bin\\Release\\main-async.exe }
+        - { name: Linux GCC,      os: ubuntu-latest, bin_sync: ./build/bin/main-sync,                 bin_async: ./build/bin/main-async }
+        - { name: Linux Clang,    os: ubuntu-latest, bin_sync: ./build/bin/main-sync,                 bin_async: ./build/bin/main-async, flags: -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ }
+        - { name: macOS,          os: macos-latest,  bin_sync: ./build/bin/main-sync,                 bin_async: ./build/bin/main-async }
         config:
         # - { name: Shared, flags: -DBUILD_SHARED_LIBS=TRUE }
         - { name: Static, flags: -DBUILD_SHARED_LIBS=FALSE }
@@ -49,5 +49,8 @@ jobs:
     - name: Build
       run: cmake --build build --config Release
 
-    - name: Run Program
-      run: ${{ matrix.platform.bin }}
+    - name: Run Program Sync
+      run: ${{ matrix.platform.bin_sync }}
+
+    - name: Run Program Async
+      run: ${{ matrix.platform.bin_async }}

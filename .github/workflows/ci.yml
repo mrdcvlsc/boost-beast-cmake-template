@@ -35,6 +35,11 @@ jobs:
     - name: Install Linux Dependencies
       if: runner.os == 'Linux'
       run: sudo apt-get update && sudo apt install libssl-dev libcurl4-openssl-dev
+
+    - name: Install Windows Dependencies
+      if: runner.os == 'Windows'
+      run: choco install openssl -y
+
       
     - name: Checkout
       uses: actions/checkout@v4

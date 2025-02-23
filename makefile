@@ -9,3 +9,6 @@ config:
 
 build:
 	cmake --build build --config Release
+
+clean:
+	rm -rf build

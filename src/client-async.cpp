@@ -92,7 +92,9 @@ public:
   }
 
 private:
-  void fail(beast::error_code ec, char const *what) { std::cerr << what << ": " << ec.message() << "\n"; }
+  void fail(beast::error_code ec, char const *what) {
+    std::cerr << what << ": " << ec.message() << "\n";
+  }
 
   void send_request(const std::string &host, const std::string &path) {
     // set up HTTP request

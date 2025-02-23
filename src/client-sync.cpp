@@ -20,11 +20,37 @@ namespace net = boost::asio;
 namespace ssl = net::ssl;
 using tcp = net::ip::tcp;
 
+// Custom verification callback
+bool verify_certificate(bool preverified, ssl::verify_context &ctx) {
+  char subject_name[256];
+  X509 *cert = X509_STORE_CTX_get_current_cert(ctx.native_handle());
+  X509_NAME_oneline(X509_get_subject_name(cert), subject_name, 256);
+
+  // log certificate information
+  std::cout << "Verifying " << subject_name << "\n";
+
+  // TO LEARN:
+  // here you can implement additional custom verification
+  // for example, certificate pinning or specific organizational checks
+
+  return preverified;
+}
+
 // function to load root certificates into an ssl::context
 void load_root_certificates(ssl::context &ctx) {
-  // unfortunately, we have to trust the host's certificate store
-  // you might want to implement proper certificate verification here
-  ctx.set_verify_mode(ssl::verify_none);
+  ctx.set_verify_mode(ssl::verify_peer | ssl::verify_fail_if_no_peer_cert);
+
+  // set default verification paths (system's root CA certificates)
+  ctx.set_default_verify_paths();
+
+  // set custom verification callback
+  ctx.set_verify_callback(verify_certificate);
+
+  // set strong cipher list
+  SSL_CTX_set_cipher_list(ctx.native_handle(), "ECDHE-ECDSA-AES256-GCM-SHA384:"
+                                               "ECDHE-RSA-AES256-GCM-SHA384:"
+                                               "ECDHE-ECDSA-CHACHA20-POLY1305:"
+                                               "ECDHE-RSA-CHACHA20-POLY1305");
 }
 
 int main() {

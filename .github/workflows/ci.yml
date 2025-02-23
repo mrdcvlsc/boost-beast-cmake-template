@@ -39,7 +39,6 @@ jobs:
     - name: Install Windows Dependencies
       if: runner.os == 'Windows'
       run: choco install openssl -y
-
       
     - name: Checkout
       uses: actions/checkout@v4

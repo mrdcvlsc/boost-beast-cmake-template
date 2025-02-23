@@ -12,6 +12,7 @@
 #include <boost/asio/ssl/verify_mode.hpp>
 
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
 
 namespace beast = boost::beast;
@@ -40,8 +41,15 @@ bool verify_certificate(bool preverified, ssl::verify_context &ctx) {
 void load_root_certificates(ssl::context &ctx) {
   ctx.set_verify_mode(ssl::verify_peer | ssl::verify_fail_if_no_peer_cert);
 
-  // set default verification paths (system's root CA certificates)
-  ctx.set_default_verify_paths();
+  // Check if the CA file exists.
+  std::ifstream file("./cacert.pem");
+  if (file.good()) {
+    std::cout << "Loading CA certificates from cacert.pem\n";
+    ctx.load_verify_file("./cacert.pem");
+  } else {
+    std::cout << "cacert.pem not found. Using system default verification paths.\n";
+    ctx.set_default_verify_paths();
+  }
 
   // set custom verification callback
   ctx.set_verify_callback(verify_certificate);

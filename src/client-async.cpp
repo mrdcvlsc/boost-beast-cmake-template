@@ -12,6 +12,7 @@
 #include <boost/system/error_code.hpp>
 
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
 #include <string>
 
@@ -41,8 +42,15 @@ void load_root_certificates(ssl::context &ctx) {
   // set verification mode to verify peer certificate
   ctx.set_verify_mode(ssl::verify_peer | ssl::verify_fail_if_no_peer_cert);
 
-  // set default verification paths (system's root CA certificates)
-  ctx.set_default_verify_paths();
+  // Check if the CA file exists.
+  std::ifstream file("./cacert.pem");
+  if (file.good()) {
+    std::cout << "Loading CA certificates from cacert.pem\n";
+    ctx.load_verify_file("./cacert.pem");
+  } else {
+    std::cout << "cacert.pem not found. Using system default verification paths.\n";
+    ctx.set_default_verify_paths();
+  }
 
   // set custom verification callback
   ctx.set_verify_callback(verify_certificate);
@@ -92,9 +100,7 @@ public:
   }
 
 private:
-  void fail(beast::error_code ec, char const *what) {
-    std::cerr << what << ": " << ec.message() << "\n";
-  }
+  void fail(beast::error_code ec, char const *what) { std::cerr << what << ": " << ec.message() << "\n"; }
 
   void send_request(const std::string &host, const std::string &path) {
     // set up HTTP request

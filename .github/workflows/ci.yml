@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [ "master", "main", "dev" ]
+
+# on:
+#   push:
+#     tags:
+#       - 'v*'
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    name: ${{ matrix.platform.name }} ${{ matrix.config.name }}
+    runs-on: ${{ matrix.platform.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+        - { name: Windows VS2019, os: windows-2019,  bin: .\\build\\bin\\Release\\main.exe }
+        - { name: Windows VS2022, os: windows-2022,  bin: .\\build\\bin\\Release\\main.exe }
+        - { name: Linux GCC,      os: ubuntu-latest, bin: ./build/bin/main }
+        - { name: Linux Clang,    os: ubuntu-latest, flags: -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ }
+        - { name: macOS,          os: macos-latest,  bin: ./build/bin/main }
+        config:
+        - { name: Shared, flags: -DBUILD_SHARED_LIBS=TRUE }
+        - { name: Static, flags: -DBUILD_SHARED_LIBS=FALSE }
+
+    steps:
+    - name: Install Linux Dependencies
+      if: runner.os == 'Linux'
+      run: sudo apt-get update && sudo apt install libssl-dev libcurl4-openssl-dev
+      
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Configure
+      run: cmake -B build ${{matrix.platform.flags}} ${{matrix.config.flags}}
+
+    - name: Build
+      run: cmake --build build --config Release
+
+    - name: Run
+      run: ${{ matrix.platform.bin }}

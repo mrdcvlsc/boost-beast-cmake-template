@@ -10,5 +10,12 @@ config:
 build:
 	cmake --build build --config Release
 
+pack:
+	cmake --build build --target package_project
+
 clean:
 	rm -rf build
+
+test:
+	cd build/main && ./bin/main-sync
+	cd build/main && ./bin/main-async

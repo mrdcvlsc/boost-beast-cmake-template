@@ -35,13 +35,13 @@ FetchContent_MakeAvailable(Boost)
 # ================== sync target ==================
 
 add_executable("${PROJECT_NAME}-sync"
-    src/client-sync.cpp
+    src/client-sync.cpp src/certificates.cpp src/http_client_sync.cpp
 )
 
 # ================== async target =================
 
 add_executable("${PROJECT_NAME}-async"
-    src/client-async.cpp
+    src/client-async.cpp src/certificates.cpp src/http_client_async.cpp
 )
 
 # ========= force msvc to use static lib ==========
@@ -91,3 +91,57 @@ if(WIN32)
         WIN32_LEAN_AND_MEAN  # exclude rarely used windows headers
     )
 endif()
+
+# === download mozila ca-certificate from curl website ===
+
+include(ExternalProject)
+
+ExternalProject_Add(download_cert
+    URL https://curl.se/ca/cacert.pem
+    DOWNLOAD_NO_EXTRACT TRUE  # no need to extract
+    CONFIGURE_COMMAND ""      # no configure step
+    BUILD_COMMAND ""          # no build step
+    INSTALL_COMMAND ${CMAKE_COMMAND} -E copy
+        <DOWNLOAD_DIR>/cacert.pem
+        ${CMAKE_BINARY_DIR}/certs/cacert.pem
+)
+
+add_custom_command(
+    TARGET download_cert PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/certs
+)
+
+add_dependencies(download_cert "${PROJECT_NAME}-async" "${PROJECT_NAME}-sync")
+
+# === Create deployment package ===
+
+set(DEPLOY_DIR ${CMAKE_BINARY_DIR}/${PROJECT_NAME})
+
+add_custom_target(package_project
+    # create deployment directory
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${DEPLOY_DIR}
+    
+    # copy binaries
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_BINARY_DIR}/bin
+        ${DEPLOY_DIR}/bin
+    
+    # copy certificates
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_BINARY_DIR}/certs
+        ${DEPLOY_DIR}/certs
+    
+    # create ZIP archive (the command differs based on platform)
+    COMMAND ${CMAKE_COMMAND} -E tar "cfv" "${CMAKE_BINARY_DIR}/${PROJECT_NAME}.zip" --format=zip
+        "${PROJECT_NAME}"
+    
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    COMMENT "Packaging ${PROJECT_NAME} into ZIP archive"
+)
+
+# Make sure packaging happens after all binaries are built and certs are downloaded
+add_dependencies(package_project 
+    "${PROJECT_NAME}-async"
+    "${PROJECT_NAME}-sync"
+    download_cert
+)

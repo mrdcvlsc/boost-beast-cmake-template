@@ -43,7 +43,11 @@ void load_root_certificates(ssl::context &ctx) {
   ctx.set_verify_mode(ssl::verify_peer | ssl::verify_fail_if_no_peer_cert);
 
   // Check if the CA file exists.
-  auto path_certificate = std::filesystem::path(".", "cacert.pem");
+  auto path_certificate = std::filesystem::current_path();
+  path_certificate /= "cacert.pem";
+
+  std::cout << "current path : " << path_certificate << '\n';
+
   std::ifstream file_certificate(path_certificate.string());
   if (file_certificate.good()) {
     std::cout << "Loading CA certificates from cacert.pem\n";

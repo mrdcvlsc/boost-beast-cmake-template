@@ -48,7 +48,7 @@ void load_root_certificates(ssl::context &ctx) {
   path_certificate /= "cacert.pem";
 
   std::cout << "current path : " << path_certificate << '\n';
-  
+
   std::ifstream file_certificate(path_certificate.string());
   if (file_certificate.good()) {
     std::cout << "Loading CA certificates from cacert.pem\n";
@@ -157,7 +157,9 @@ private:
   http::response<http::string_body> res_;
 };
 
-int main() {
+int main(int _, const char **argv) {
+  std::cout << "program path : " << argv[0] << '\n';
+
   try {
     net::io_context ioc;
 

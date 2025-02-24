@@ -67,7 +67,9 @@ void load_root_certificates(ssl::context &ctx) {
                                                "ECDHE-RSA-CHACHA20-POLY1305");
 }
 
-int main() {
+int main(int _, const char **argv) {
+  std::cout << "program path : " << argv[0] << '\n';
+
   try {
     // IO context required for all I/O
     net::io_context ioc;

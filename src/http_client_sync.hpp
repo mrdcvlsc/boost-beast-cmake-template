@@ -31,19 +31,18 @@ class http_client_sync {
   std::string host;
   std::string port;
 
+  ssl::context ctx;
+  net::io_context ioc;
   tcp::resolver resolver;
   beast::ssl_stream<beast::tcp_stream> stream;
-  http::response<http::dynamic_body> response;
 
 public:
   // : resolver(ioc) ?
-  http_client_sync(net::io_context &ioc, ssl::context &ctx);
+  http_client_sync();
 
   void establish_connection(std::string_view host, std::string_view port);
 
-  void send_request(http::verb, const std::string &path);
-
-  http::response<http::dynamic_body> received_response();
+  http::response<http::string_body> fetch(http::request<http::string_body> &request);
 };
 
 #endif

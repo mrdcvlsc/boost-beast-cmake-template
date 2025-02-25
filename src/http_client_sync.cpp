@@ -1,10 +1,13 @@
 #include "http_client_sync.hpp"
+#include "certificates.hpp"
 
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/strand.hpp>
 
 #include <boost/beast/core.hpp>
+#include <boost/beast/http/dynamic_body.hpp>
+#include <boost/beast/http/string_body.hpp>
 #include <boost/beast/version.hpp>
 
 #include <boost/beast/http.hpp>
@@ -26,10 +29,9 @@ namespace ssl = net::ssl;
 using tcp = net::ip::tcp;
 
 // : resolver(ioc) ?
-http_client_sync::http_client_sync(net::io_context &ioc, ssl::context &ctx) : resolver(net::make_strand(ioc)), stream(net::make_strand(ioc), ctx) {}
+http_client_sync::http_client_sync() : ctx(load_certificates()), ioc(net::io_context()), resolver(net::make_strand(ioc)), stream(net::make_strand(ioc), ctx) {}
 
 void http_client_sync::establish_connection(std::string_view host, std::string_view port) {
-
   this->host = host;
   this->port = port;
 
@@ -48,10 +50,8 @@ void http_client_sync::establish_connection(std::string_view host, std::string_v
   stream.handshake(ssl::stream_base::client);
 }
 
-void http_client_sync::send_request(http::verb, const std::string &path) {
+http::response<http::string_body> http_client_sync::fetch(http::request<http::string_body> &request) {
 
-  // set up an HTTP GET request message
-  http::request<http::string_body> request{http::verb::get, path, 11};
   request.set(http::field::host, host);
   request.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
 
@@ -62,7 +62,7 @@ void http_client_sync::send_request(http::verb, const std::string &path) {
   beast::flat_buffer buffer;
 
   // declare a container to hold the response
-  response = http::response<http::dynamic_body>();
+  http::response<http::string_body> response = http::response<http::string_body>();
 
   // receive the HTTP response
   http::read(stream, buffer, response);
@@ -75,6 +75,6 @@ void http_client_sync::send_request(http::verb, const std::string &path) {
   if (ec && ec != beast::errc::not_connected) {
     throw beast::system_error{ec};
   }
-}
 
-http::response<http::dynamic_body> http_client_sync::received_response() { return response; }
+  return response;
+}

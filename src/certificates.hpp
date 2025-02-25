@@ -10,5 +10,6 @@ namespace ssl = boost::asio::ssl;
 
 bool verify_certificate(bool preverified, ssl::verify_context &ctx);
 ssl::context load_certificates();
+ssl::context load_certificates_SSL_TLS();
 
 #endif

@@ -53,7 +53,6 @@ ssl::context load_certificates() {
 
   // check if mozilla CA bundle from curl exists
   auto curl_mozilla_ca = fs::current_path() / "certs" / "cacert.pem";
-  std::cout << "curl mozilla ca path: " << curl_mozilla_ca << '\n';
 
   std::ifstream file_certificate(curl_mozilla_ca.string());
   if (file_certificate.good()) {
@@ -73,6 +72,29 @@ ssl::context load_certificates() {
   //                                              "ECDHE-RSA-CHACHA20-POLY1305");
 
   // for clients:
+  SSL_CTX_set_ciphersuites(ctx.native_handle(), "TLS_AES_256_GCM_SHA384:"
+                                                "TLS_CHACHA20_POLY1305_SHA256");
+
+  return ctx;
+}
+
+ssl::context load_certificates_SSL_TLS() {
+  ssl::context ctx{ssl::context::sslv23_client};
+
+  ctx.set_verify_mode(ssl::verify_peer);
+
+  auto curl_mozilla_ca = fs::current_path() / "certs" / "cacert.pem";
+
+  std::ifstream file_certificate(curl_mozilla_ca.string());
+  if (file_certificate.good()) {
+    std::cout << "Loading CA certificates from cacert.pem\n";
+    ctx.load_verify_file(curl_mozilla_ca.string());
+  } else {
+    std::cout << "cacert.pem not found. Using system default verification paths.\n";
+  }
+
+  ctx.set_verify_callback(verify_certificate);
+
   SSL_CTX_set_ciphersuites(ctx.native_handle(), "TLS_AES_256_GCM_SHA384:"
                                                 "TLS_CHACHA20_POLY1305_SHA256");
 
